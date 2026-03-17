@@ -1,0 +1,36 @@
+name: Encrypt site for SECURITY REASONS
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install StatiCrypt
+        run: npm install -g staticrypt
+
+      - name: Encrypt HTML files
+        run: |
+          mkdir dist
+          for file in *.html; do
+            staticrypt "$file" "$PASSWORD" -o "dist/$file"
+          done
+        env:
+          PASSWORD: ${{ secrets.SITE_PASSWORD }}
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
